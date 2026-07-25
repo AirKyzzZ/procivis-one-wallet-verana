@@ -46,6 +46,7 @@ import {
   HeaderInfoButton,
 } from '../../components/navigation/header-buttons';
 import ShareDisclaimer from '../../components/share/share-disclaimer';
+import { VeranaTrustCard } from '../../components/trust/verana-trust-card';
 import { useCredentialImagePreview } from '../../hooks/credential-card/image-preview';
 import { useCurrentLanguage } from '../../hooks/language';
 import { translate } from '../../i18n';
@@ -57,6 +58,7 @@ import {
 import { RootNavigationProp } from '../../navigators/root/root-routes';
 import { credentialCardLabels } from '../../utils/credential';
 import { trustInfoLabels } from '../../utils/trust-info';
+import { isVeranaTrustActionReady } from '../../utils/verana-trust';
 
 const {
   addEventListener: addRSEEventListener,
@@ -95,11 +97,13 @@ const CredentialOfferScreen: FunctionComponent = () => {
   const { mutateAsync: acceptCredential } = useCredentialAccept();
   const [credentialId, setCredentialId] = useState<string>();
   const { data: credential } = useCredentialDetail(credentialId);
+  const veranaTrust = credential?.trustInformation?.verana;
   const { data: credentialSchema } = useCredentialSchemaDetail(
     credential?.schema.id,
   );
   const { data: trustInformation } = useCredentialTrustInformation(
     featureFlags?.trustEcosystemsEnabled &&
+      !veranaTrust &&
       credential?.trustInformation?.result === TrustResolutionResult.TRUSTED
       ? credentialId
       : undefined,
@@ -161,13 +165,23 @@ const CredentialOfferScreen: FunctionComponent = () => {
   }, [credential, handleCredentialAccept, navigation]);
 
   const trustDetailsPressHandler = useCallback(() => {
+    if (veranaTrust && credentialId) {
+      rootNavigation.navigate('TrustInfo', {
+        verana: {
+          entityId: credentialId,
+          entityType: 'credential',
+          summary: veranaTrust,
+        },
+      });
+      return;
+    }
     if (!trustInformation) {
       return;
     }
     rootNavigation.navigate('TrustInfo', {
       trustInformation,
     });
-  }, [rootNavigation, trustInformation]);
+  }, [credentialId, rootNavigation, trustInformation, veranaTrust]);
 
   const infoPressHandler = useCallback(() => {
     if (!credentialId) {
@@ -291,7 +305,13 @@ const CredentialOfferScreen: FunctionComponent = () => {
         <ActivityIndicator animate={isFocused} style={styles.loader} />
       ) : (
         <View style={styles.content} testID={concatTestID(testID, 'content')}>
-          {featureFlags?.trustEcosystemsEnabled && (
+          {veranaTrust ? (
+            <VeranaTrustCard
+              onPress={trustDetailsPressHandler}
+              summary={veranaTrust}
+              testID={concatTestID(testID, 'veranaTrust')}
+            />
+          ) : featureFlags?.trustEcosystemsEnabled ? (
             <TrustInfo
               labels={trustInfoLabels()}
               onPress={trustDetailsPressHandler}
@@ -302,7 +322,7 @@ const CredentialOfferScreen: FunctionComponent = () => {
               testID={concatTestID(testID, 'trustInfo')}
               trustInformation={trustInformation?.eudiEcosystem}
             />
-          )}
+          ) : null}
           <View
             style={styles.credentialWrapper}
             testID={`HolderCredentialID.value.${credential.id}`}
@@ -324,6 +344,13 @@ const CredentialOfferScreen: FunctionComponent = () => {
           </View>
           <View style={styles.bottom}>
             <Button
+              disabled={
+                !isVeranaTrustActionReady(
+                  veranaTrust,
+                  true,
+                  featureFlags?.trustEcosystemsEnabled !== false,
+                )
+              }
               onPress={onAccept}
               testID={concatTestID(testID, 'accept')}
               title={translate('common.accept')}

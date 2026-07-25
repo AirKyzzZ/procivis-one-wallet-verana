@@ -48,7 +48,10 @@ import {
   preselectTransactionCredentialsForPresentationDefinitionV2,
   SetCredentialQuerySelection,
 } from '../../utils/proof-request';
-import { ProofPresentationProps } from './proof-presentation-props';
+import {
+  hasProofTransactions,
+  ProofPresentationProps,
+} from './proof-presentation-props';
 import TransactionRequestListItem from './transaction-request-list-item';
 
 function selectCredential(
@@ -279,6 +282,7 @@ function getNewSetSelection(
 const ProofPresentationV2: FC<ProofPresentationProps> = ({
   onPresentationDefinitionLoaded,
   proofAccepted,
+  trustReady,
 }) => {
   const colorScheme = useAppColorScheme();
   const onImagePreview = useCredentialImagePreview();
@@ -647,7 +651,7 @@ const ProofPresentationV2: FC<ProofPresentationProps> = ({
 
   return (
     <>
-      {presentationDefinition.transactionData.length && (
+      {hasProofTransactions(presentationDefinition.transactionData) && (
         <ProofRequestSet
           headerLabel={translate('common.actionsToAuthorize')}
           showHeader={true}
@@ -818,11 +822,15 @@ const ProofPresentationV2: FC<ProofPresentationProps> = ({
           </View>
         )}
         <Button
-          disabled={!allSelectionsValid}
+          disabled={!allSelectionsValid || !trustReady}
           onPress={onSubmit}
           testID="ProofRequestSharingScreen.shareButton"
           title={translate('common.share')}
-          type={allSelectionsValid ? ButtonType.Primary : ButtonType.Secondary}
+          type={
+            allSelectionsValid && trustReady
+              ? ButtonType.Primary
+              : ButtonType.Secondary
+          }
         />
       </View>
     </>

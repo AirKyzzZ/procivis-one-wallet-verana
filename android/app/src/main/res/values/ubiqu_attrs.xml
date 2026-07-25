@@ -1,0 +1,20 @@
+<resources>
+    <!-- The public RN wrapper ships an unsupported Ubiqu stub without its licensed resources. -->
+    <attr name="ubqsdk_numericKeyPadBackground" format="color" />
+    <attr name="ubqsdk_numericKeyPadTopSpacing" format="dimension" />
+    <attr name="ubqsdk_numericKeyPadBottomSpacing" format="dimension" />
+    <attr name="ubqsdk_numericButtonWidth" format="dimension" />
+    <attr name="ubqsdk_numericButtonHeight" format="dimension" />
+    <attr name="ubqsdk_numericButtonCornerRadius" format="dimension" />
+    <attr name="ubqsdk_numericButtonTextSize" format="dimension" />
+    <attr name="ubqsdk_numericButtonFontFamily" format="reference" />
+    <attr name="ubqsdk_numericButtonIconSize" format="dimension" />
+    <attr name="ubqsdk_numericButtonTextColor" format="color" />
+    <attr name="ubqsdk_numericButtonBackgroundColor" format="color" />
+    <attr name="ubqsdk_numericButtonAlphaSelected" format="float" />
+    <attr name="ubqsdk_numericButtonBackgroundColorSelected" format="color" />
+    <attr name="ubqsdk_numericButtonIconColor" format="color" />
+    <attr name="ubqsdk_extraButtonBackgroundColor" format="color" />
+    <attr name="ubqsdk_extraButtonAlphaSelected" format="float" />
+    <attr name="ubqsdk_extraButtonBackgroundColorSelected" format="color" />
+</resources>

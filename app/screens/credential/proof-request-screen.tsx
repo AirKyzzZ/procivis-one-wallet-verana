@@ -3,6 +3,7 @@ import {
   ScrollViewScreen,
   TrustInfo,
   useBeforeRemove,
+  useProofDetail,
   useProofReject,
   useProofRequestTrustInformation,
 } from '@procivis/one-react-native-components';
@@ -20,11 +21,13 @@ import {
 } from '../../components/navigation/header-buttons';
 import ProofPresentationV2 from '../../components/proof-request/proof-presentation-v2';
 import ShareDisclaimer from '../../components/share/share-disclaimer';
+import { VeranaTrustCard } from '../../components/trust/verana-trust-card';
 import { translate } from '../../i18n';
 import { useStores } from '../../models';
 import { RootNavigationProp } from '../../navigators/root/root-routes';
 import { ShareCredentialRouteProp } from '../../navigators/share-credential/share-credential-routes';
 import { trustInfoLabels } from '../../utils/trust-info';
+import { isVeranaTrustActionReady } from '../../utils/verana-trust';
 
 const ProofRequestScreen: FunctionComponent = () => {
   const rootNavigation = useNavigation<RootNavigationProp>();
@@ -39,8 +42,10 @@ const ProofRequestScreen: FunctionComponent = () => {
   const {
     request: { interactionId, proofId },
   } = route.params;
+  const { data: proof } = useProofDetail(proofId);
+  const veranaTrust = proof?.trustInformation?.verana;
   const { data: trustInformation } = useProofRequestTrustInformation(
-    featureFlags?.trustEcosystemsEnabled ? proofId : undefined,
+    featureFlags?.trustEcosystemsEnabled && !veranaTrust ? proofId : undefined,
   );
 
   // If this is true, we should not attempt to reject in useBeforeRemove
@@ -54,13 +59,23 @@ const ProofRequestScreen: FunctionComponent = () => {
   }, []);
 
   const trustDetailsPressHandler = useCallback(() => {
+    if (veranaTrust) {
+      rootNavigation.navigate('TrustInfo', {
+        verana: {
+          entityId: proofId,
+          entityType: 'proof',
+          summary: veranaTrust,
+        },
+      });
+      return;
+    }
     if (!trustInformation) {
       return;
     }
     rootNavigation.navigate('TrustInfo', {
       trustInformation,
     });
-  }, [rootNavigation, trustInformation]);
+  }, [proofId, rootNavigation, trustInformation, veranaTrust]);
 
   const infoPressHandler = useCallback(() => {
     rootNavigation.navigate('NerdMode', {
@@ -102,7 +117,13 @@ const ProofRequestScreen: FunctionComponent = () => {
       testID="ProofRequestSharingScreen"
     >
       <View style={styles.content} testID="ProofRequestSharingScreen.content">
-        {featureFlags?.trustEcosystemsEnabled && (
+        {veranaTrust ? (
+          <VeranaTrustCard
+            onPress={trustDetailsPressHandler}
+            summary={veranaTrust}
+            testID="ProofRequestSharingScreen.veranaTrust"
+          />
+        ) : featureFlags?.trustEcosystemsEnabled ? (
           <TrustInfo
             labels={trustInfoLabels()}
             onPress={trustDetailsPressHandler}
@@ -110,11 +131,16 @@ const ProofRequestScreen: FunctionComponent = () => {
             testID="ProofRequestSharingScreen.trustInfo"
             trustInformation={trustInformation?.eudiEcosystem}
           />
-        )}
+        ) : null}
         <>
           <ProofPresentationV2
             onPresentationDefinitionLoaded={onPresentationDefinitionLoaded}
             proofAccepted={proofAccepted}
+            trustReady={isVeranaTrustActionReady(
+              veranaTrust,
+              true,
+              featureFlags?.trustEcosystemsEnabled !== false,
+            )}
           />
           {!presentationDefinitionLoaded ? (
             <ActivityIndicator

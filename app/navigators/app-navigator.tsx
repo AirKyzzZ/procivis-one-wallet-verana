@@ -118,6 +118,12 @@ const coreConfig = {
       type: 'MDOC',
     },
   },
+  globalSettings: {
+    veranaTrust: {
+      resolverUrl: 'https://resolver.testnet.verana.network',
+      timeout: 5,
+    },
+  },
   issuanceProtocol: {
     OPENID4VCI_FINAL1: {
       params: {
