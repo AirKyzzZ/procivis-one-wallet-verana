@@ -96,15 +96,20 @@ const CredentialOfferScreen: FunctionComponent = () => {
   const [acceptanceInitialized, setAcceptanceInitialized] = useState(false);
   const { mutateAsync: acceptCredential } = useCredentialAccept();
   const [credentialId, setCredentialId] = useState<string>();
-  const { data: credential } = useCredentialDetail(credentialId);
+  const { data: credential, refetch: refetchCredential } =
+    useCredentialDetail(credentialId);
   const veranaTrust = credential?.trustInformation?.verana;
   const { data: credentialSchema } = useCredentialSchemaDetail(
     credential?.schema.id,
   );
-  const { data: trustInformation } = useCredentialTrustInformation(
-    featureFlags?.trustEcosystemsEnabled &&
-      !veranaTrust &&
-      credential?.trustInformation?.result === TrustResolutionResult.TRUSTED
+  const {
+    data: trustInformation,
+    isFetching: trustInformationFetching,
+    refetch: refetchTrustInformation,
+  } = useCredentialTrustInformation(
+    veranaTrust ||
+      (featureFlags?.trustEcosystemsEnabled &&
+        credential?.trustInformation?.result === TrustResolutionResult.TRUSTED)
       ? credentialId
       : undefined,
   );
@@ -163,6 +168,11 @@ const CredentialOfferScreen: FunctionComponent = () => {
   useEffect(() => {
     handleCredentialAccept();
   }, [credential, handleCredentialAccept, navigation]);
+
+  const retryVeranaTrust = useCallback(() => {
+    void refetchCredential();
+    void refetchTrustInformation();
+  }, [refetchCredential, refetchTrustInformation]);
 
   const trustDetailsPressHandler = useCallback(() => {
     if (veranaTrust && credentialId) {
@@ -307,7 +317,11 @@ const CredentialOfferScreen: FunctionComponent = () => {
         <View style={styles.content} testID={concatTestID(testID, 'content')}>
           {veranaTrust ? (
             <VeranaTrustCard
+              askCredentialName={credential.schema.name}
+              details={trustInformation?.verana}
+              detailsLoading={trustInformationFetching}
               onPress={trustDetailsPressHandler}
+              onRetry={retryVeranaTrust}
               summary={veranaTrust}
               testID={concatTestID(testID, 'veranaTrust')}
             />

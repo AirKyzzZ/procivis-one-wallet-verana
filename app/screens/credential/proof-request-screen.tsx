@@ -42,10 +42,14 @@ const ProofRequestScreen: FunctionComponent = () => {
   const {
     request: { interactionId, proofId },
   } = route.params;
-  const { data: proof } = useProofDetail(proofId);
+  const { data: proof, refetch: refetchProof } = useProofDetail(proofId);
   const veranaTrust = proof?.trustInformation?.verana;
-  const { data: trustInformation } = useProofRequestTrustInformation(
-    featureFlags?.trustEcosystemsEnabled && !veranaTrust ? proofId : undefined,
+  const {
+    data: trustInformation,
+    isFetching: trustInformationFetching,
+    refetch: refetchTrustInformation,
+  } = useProofRequestTrustInformation(
+    veranaTrust || featureFlags?.trustEcosystemsEnabled ? proofId : undefined,
   );
 
   // If this is true, we should not attempt to reject in useBeforeRemove
@@ -57,6 +61,11 @@ const ProofRequestScreen: FunctionComponent = () => {
   const onPresentationDefinitionLoaded = useCallback(() => {
     setPresentationDefinitionLoaded(true);
   }, []);
+
+  const retryVeranaTrust = useCallback(() => {
+    void refetchProof();
+    void refetchTrustInformation();
+  }, [refetchProof, refetchTrustInformation]);
 
   const trustDetailsPressHandler = useCallback(() => {
     if (veranaTrust) {
@@ -119,7 +128,10 @@ const ProofRequestScreen: FunctionComponent = () => {
       <View style={styles.content} testID="ProofRequestSharingScreen.content">
         {veranaTrust ? (
           <VeranaTrustCard
+            details={trustInformation?.verana}
+            detailsLoading={trustInformationFetching}
             onPress={trustDetailsPressHandler}
+            onRetry={retryVeranaTrust}
             summary={veranaTrust}
             testID="ProofRequestSharingScreen.veranaTrust"
           />
