@@ -58,7 +58,7 @@ import {
 import { RootNavigationProp } from '../../navigators/root/root-routes';
 import { credentialCardLabels } from '../../utils/credential';
 import { trustInfoLabels } from '../../utils/trust-info';
-import { isVeranaTrustActionReady } from '../../utils/verana-trust';
+import { isVeranaTrustActionAllowed } from '../../utils/verana-trust';
 
 const {
   addEventListener: addRSEEventListener,
@@ -345,11 +345,7 @@ const CredentialOfferScreen: FunctionComponent = () => {
           <View style={styles.bottom}>
             <Button
               disabled={
-                !isVeranaTrustActionReady(
-                  veranaTrust,
-                  true,
-                  featureFlags?.trustEcosystemsEnabled !== false,
-                )
+                !isVeranaTrustActionAllowed(veranaTrust, Boolean(credential))
               }
               onPress={onAccept}
               testID={concatTestID(testID, 'accept')}

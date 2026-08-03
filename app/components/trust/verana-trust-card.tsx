@@ -5,13 +5,15 @@ import {
   UpIcon,
   useAppColorScheme,
 } from '@procivis/one-react-native-components';
-import { VeranaTrustSummary } from '@procivis/react-native-one-core';
+import {
+  VeranaTrustSummary,
+  VeranaTrustVerdict,
+} from '@procivis/react-native-one-core';
 import React, { FC } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { translate } from '../../i18n';
 import {
-  isVeranaTrustPositive,
   veranaRoleTranslationKey,
   veranaVerdictTranslationKey,
 } from '../../utils/verana-trust';
@@ -24,7 +26,7 @@ type Props = {
 
 export const VeranaTrustCard: FC<Props> = ({ onPress, summary, testID }) => {
   const colorScheme = useAppColorScheme();
-  const positive = isVeranaTrustPositive(summary.verdict);
+  const positive = summary.verdict === VeranaTrustVerdict.TRUSTED_AUTHORIZED;
   const StatusIcon = positive ? StatusSuccessIcon : StatusWarningIcon;
   return (
     <Pressable

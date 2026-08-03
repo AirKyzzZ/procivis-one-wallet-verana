@@ -27,7 +27,7 @@ import { useStores } from '../../models';
 import { RootNavigationProp } from '../../navigators/root/root-routes';
 import { ShareCredentialRouteProp } from '../../navigators/share-credential/share-credential-routes';
 import { trustInfoLabels } from '../../utils/trust-info';
-import { isVeranaTrustActionReady } from '../../utils/verana-trust';
+import { isVeranaTrustActionAllowed } from '../../utils/verana-trust';
 
 const ProofRequestScreen: FunctionComponent = () => {
   const rootNavigation = useNavigation<RootNavigationProp>();
@@ -136,11 +136,7 @@ const ProofRequestScreen: FunctionComponent = () => {
           <ProofPresentationV2
             onPresentationDefinitionLoaded={onPresentationDefinitionLoaded}
             proofAccepted={proofAccepted}
-            trustReady={isVeranaTrustActionReady(
-              veranaTrust,
-              true,
-              featureFlags?.trustEcosystemsEnabled !== false,
-            )}
+            trustReady={isVeranaTrustActionAllowed(veranaTrust, Boolean(proof))}
           />
           {!presentationDefinitionLoaded ? (
             <ActivityIndicator
