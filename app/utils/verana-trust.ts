@@ -11,6 +11,7 @@ export type VeranaAuthorizationOutcome =
 
 export type VeranaTrustBand =
   | 'PARTIAL'
+  | 'RESOLVING'
   | 'TRUSTED'
   | 'UNTRUSTED'
   | 'UNVERIFIED';

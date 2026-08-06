@@ -251,6 +251,23 @@ describe('VeranaTrustCard', () => {
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
+  it('shows the resolving state as a verdict rather than a spinner line', () => {
+    const nodes = renderNodes(
+      callComponent(VeranaTrustCard, {
+        detailsLoading: true,
+        onPress: jest.fn(),
+        summary: summary(VeranaTrustVerdict.TRUSTED_AUTHORIZED),
+        testID: 'VeranaTrustCard',
+      }),
+    );
+    const verdict = nodes.find(
+      (node) => node.props.testID === 'VeranaTrustCard.verdict',
+    );
+
+    expect(verdict?.props.children).toBe('CHECKING…');
+    expect(textOf(nodes)).toContain('Checking the Verana public registry…');
+  });
+
   it('marks NON_PRODUCTION as testnet and treats the empty-authorizations ask as could-not-determine', () => {
     const nodes = renderNodes(
       callComponent(VeranaTrustCard, {

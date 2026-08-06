@@ -35,7 +35,7 @@ const STRINGS = {
   intact: 'intact',
   noAgeRestriction: 'No age restriction',
   noDigest: 'no digest',
-  resolving: 'Resolving trust credentials…',
+  resolving: 'Checking the Verana public registry…',
   testnet: 'TESTNET',
   tickQuery: '?',
 } as const;
@@ -47,6 +47,7 @@ const palette = {
   badSoft: '#fef2f2',
   body: '#374151',
   brand: '#7c3aed',
+  brandSoft: '#ede9fe',
   card: '#ffffff',
   chip: '#f3f4f6',
   faint: '#9ca3af',
@@ -72,6 +73,12 @@ const VERDICT_TONE: Record<
     color: palette.warn,
     dot: palette.warn,
     label: 'PARTIAL',
+  },
+  RESOLVING: {
+    border: palette.line,
+    color: palette.sub,
+    dot: palette.faint,
+    label: 'CHECKING…',
   },
   TRUSTED: {
     border: palette.ok,
@@ -574,7 +581,7 @@ export const VeranaTrustCard: FC<Props> = ({
   summary,
   testID,
 }) => {
-  const band = veranaTrustBand(summary.verdict);
+  const band = detailsLoading ? 'RESOLVING' : veranaTrustBand(summary.verdict);
   const tone = VERDICT_TONE[band];
   const testnet = isVeranaTestnet(summary) || details?.production === false;
   const credentials = details?.credentials ?? [];
@@ -630,7 +637,9 @@ export const VeranaTrustCard: FC<Props> = ({
     service?.terms || service?.privacy || service?.minimumAgeRequired,
   );
   const note =
-    band === 'UNVERIFIED'
+    band === 'RESOLVING'
+      ? STRINGS.resolving
+      : band === 'UNVERIFIED'
       ? 'The Verana resolver could not be reached. This counterparty is neither trusted nor untrusted.'
       : credentials.length > 0
       ? describeVerdict(band, credentials)
@@ -660,12 +669,6 @@ export const VeranaTrustCard: FC<Props> = ({
         testnet={testnet}
         tone={tone.dot}
       />
-
-      {detailsLoading ? (
-        <Typography color={palette.sub} preset="xs">
-          {STRINGS.resolving}
-        </Typography>
-      ) : null}
 
       {credentials.length > 0 ? (
         <View>
