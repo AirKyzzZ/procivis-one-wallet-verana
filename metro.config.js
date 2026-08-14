@@ -15,11 +15,31 @@ const localOneCore = path.resolve(__dirname, '../procivis-react-native-one-core'
  *
  * @type {import('@react-native/metro-config').MetroConfig}
  */
+// The bridge checkout carries its own react-native (0.72) as a dev dependency. Metro resolves that
+// copy for imports made from inside the bridge, and a second react-native has no TurboModule
+// registry in this app's bridgeless runtime, so `PlatformConstants` throws the moment the bridge
+// constructs a NativeEventEmitter. extraNodeModules below is only a fallback and never fires while
+// that copy exists, so pin the singleton explicitly.
+const SINGLETONS = ['react-native', 'react', 'react-native-svg'];
+
 const config = {
   watchFolders: [localOneCore],
   resolver: {
     assetExts: assetExts.filter((ext) => ext !== 'svg'),
     sourceExts: [...sourceExts, 'svg'],
+    resolveRequest: (context, moduleName, platform) => {
+      const singleton = SINGLETONS.find(
+        (name) => moduleName === name || moduleName.startsWith(`${name}/`),
+      );
+      if (singleton) {
+        return context.resolveRequest(
+          { ...context, originModulePath: path.join(__dirname, 'index.js') },
+          moduleName,
+          platform,
+        );
+      }
+      return context.resolveRequest(context, moduleName, platform);
+    },
     extraNodeModules: new Proxy(
       { '@procivis/react-native-one-core': localOneCore },
       {
